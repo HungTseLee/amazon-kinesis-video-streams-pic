@@ -55,10 +55,10 @@ VOID addLogMetadata(PCHAR buffer, UINT32 bufferLen, PCHAR fmt, UINT32 logLevel)
 //
 // Default logger function
 //
-extern MUTEX log_in_order_mutex;
+//extern MUTEX log_in_order_mutex;
 VOID defaultLogPrint(UINT32 level, PCHAR tag, PCHAR fmt, ...)
 {
-    defaultLockMutex(log_in_order_mutex);
+    //defaultLockMutex(log_in_order_mutex);
   
     PCHAR logFmtString = MEMALLOC(MAX_LOG_FORMAT_LENGTH + 1);
     UINT32 logLevel = GET_LOGGER_LOG_LEVEL();
@@ -75,7 +75,7 @@ VOID defaultLogPrint(UINT32 level, PCHAR tag, PCHAR fmt, ...)
     }
     MEMFREE(logFmtString);
     
-    defaultUnlockMutex(log_in_order_mutex);
+    //defaultUnlockMutex(log_in_order_mutex);
 }
 
 VOID loggerSetLogLevel(UINT32 targetLoggerLevel)
