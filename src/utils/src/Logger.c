@@ -74,6 +74,10 @@ VOID defaultLogPrint(UINT32 level, PCHAR tag, PCHAR fmt, ...)
         va_end(valist);
     }
     MEMFREE(logFmtString);
+
+#if !defined(__ICCARM__)
+    printf("\r\n");
+#endif
     
     //defaultUnlockMutex(log_in_order_mutex);
 }
