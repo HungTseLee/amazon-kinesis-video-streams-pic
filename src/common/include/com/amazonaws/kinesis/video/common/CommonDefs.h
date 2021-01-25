@@ -504,7 +504,7 @@ typedef CID*                PCID;
 #include <time.h>
 
 #define KVSPIC_OS_VERSION "freertos/freertos"
-#define KVSPIC_PLATFORM_NAME "esp32"
+#define KVSPIC_PLATFORM_NAME "AmebaPro"
 #ifdef KVSPIC_HAVE_UTSNAME_H
 #include <sys/utsname.h>
 #endif
