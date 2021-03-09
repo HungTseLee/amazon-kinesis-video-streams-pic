@@ -49,17 +49,14 @@ VOID addLogMetadata(PCHAR buffer, UINT32 bufferLen, PCHAR fmt, UINT32 logLevel)
     offset += SNPRINTF(buffer + offset, bufferLen - offset, "%s ", tidString);
 #endif
 #endif
-    SNPRINTF(buffer + offset, bufferLen - offset, "%s\n", fmt);
+    SNPRINTF(buffer + offset, bufferLen - offset, "%s\n\r", fmt);
 }
 
 //
 // Default logger function
 //
-//extern MUTEX log_in_order_mutex;
 VOID defaultLogPrint(UINT32 level, PCHAR tag, PCHAR fmt, ...)
-{
-    //defaultLockMutex(log_in_order_mutex);
-  
+{  
     PCHAR logFmtString = MEMALLOC(MAX_LOG_FORMAT_LENGTH + 1);
     UINT32 logLevel = GET_LOGGER_LOG_LEVEL();
 
@@ -74,12 +71,6 @@ VOID defaultLogPrint(UINT32 level, PCHAR tag, PCHAR fmt, ...)
         va_end(valist);
     }
     MEMFREE(logFmtString);
-
-#if !defined(__ICCARM__)
-    printf("\r\n");
-#endif
-    
-    //defaultUnlockMutex(log_in_order_mutex);
 }
 
 VOID loggerSetLogLevel(UINT32 targetLoggerLevel)
