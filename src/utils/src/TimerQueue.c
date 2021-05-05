@@ -3,7 +3,7 @@
 /**
  * Create a timer queue object
  */
-STATUS timerQueueCreate(PTIMER_QUEUE_HANDLE pHandle)
+STATUS timerQueueCreateEx(PTIMER_QUEUE_HANDLE pHandle, PCHAR timerName, UINT32 threadSize)
 {
     ENTERS();
     STATUS retStatus = STATUS_SUCCESS;
@@ -11,7 +11,7 @@ STATUS timerQueueCreate(PTIMER_QUEUE_HANDLE pHandle)
 
     CHK(pHandle != NULL, STATUS_NULL_ARG);
 
-    CHK_STATUS(timerQueueCreateInternal(DEFAULT_TIMER_QUEUE_TIMER_COUNT, &pTimerQueue));
+    CHK_STATUS(timerQueueCreateInternalEx(DEFAULT_TIMER_QUEUE_TIMER_COUNT, &pTimerQueue, timerName, threadSize));
 
     *pHandle = TO_TIMER_QUEUE_HANDLE(pTimerQueue);
 
@@ -23,6 +23,11 @@ CleanUp:
 
     LEAVES();
     return retStatus;
+}
+
+STATUS timerQueueCreate(PTIMER_QUEUE_HANDLE pHandle)
+{
+    return timerQueueCreateEx(pHandle, NULL, 0);
 }
 
 /**
@@ -329,7 +334,7 @@ CleanUp:
 /////////////////////////////////////////////////////////////////////////////////
 // Internal operations
 /////////////////////////////////////////////////////////////////////////////////
-STATUS timerQueueCreateInternal(UINT32 maxTimers, PTimerQueue* ppTimerQueue)
+STATUS timerQueueCreateInternalEx(UINT32 maxTimers, PTimerQueue* ppTimerQueue, PCHAR timerName, UINT32 threadSize)
 {
     ENTERS();
     STATUS retStatus = STATUS_SUCCESS;
@@ -375,7 +380,8 @@ STATUS timerQueueCreateInternal(UINT32 maxTimers, PTimerQueue* ppTimerQueue)
     locked = TRUE;
 
     // Create the executor thread
-    CHK_STATUS(THREAD_CREATE(&threadId, timerQueueExecutor, (PVOID) pTimerQueue));
+    CHK_STATUS(THREAD_CREATE_EX(&threadId, timerName, threadSize, timerQueueExecutor, (PVOID) pTimerQueue));
+
     CHK_STATUS(THREAD_DETACH(threadId));
 
     pTimerQueue->executorTid = threadId;
@@ -402,6 +408,11 @@ CleanUp:
 
     LEAVES();
     return retStatus;
+}
+
+STATUS timerQueueCreateInternal(UINT32 maxTimers, PTimerQueue* ppTimerQueue)
+{
+    return timerQueueCreateInternalEx(maxTimers, ppTimerQueue, NULL, 0);
 }
 
 STATUS timerQueueFreeInternal(PTimerQueue* ppTimerQueue)

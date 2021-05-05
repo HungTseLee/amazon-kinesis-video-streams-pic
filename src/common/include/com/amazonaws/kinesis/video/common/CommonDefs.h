@@ -234,6 +234,11 @@ typedef PCONDITION_VARIABLE CVAR;
 #else
 #include <pthread.h>
 #include <signal.h>
+#if defined(KVS_PLAT_ESP_FREERTOS)
+#include <esp_pthread.h>
+#include "esp_heap_caps.h"
+#include "esp_system.h"
+#endif
 typedef pthread_cond_t* CVAR;
 #endif
 
@@ -253,6 +258,11 @@ typedef pthread_cond_t* CVAR;
 // Max mutex name
 #ifndef MAX_MUTEX_NAME
 #define MAX_MUTEX_NAME 32
+#endif
+
+#if defined(KVS_PLAT_ESP_FREERTOS)
+#define DEFAULT_THREAD_SIZE 4096
+#define DEFAULT_THREAD_NAME "pthread"
 #endif
 
 // Content ID - 64 bit uint
@@ -687,6 +697,7 @@ typedef VOID (*unlockMutex)(MUTEX);
 typedef BOOL (*tryLockMutex)(MUTEX);
 typedef VOID (*freeMutex)(MUTEX);
 typedef STATUS (*createThread)(PTID, startRoutine, PVOID);
+typedef STATUS (*createThreadEx)(PTID, PCHAR threadName, UINT32 threadSize, startRoutine, PVOID);
 typedef STATUS (*joinThread)(TID, PVOID*);
 typedef VOID (*threadSleep)(UINT64);
 typedef VOID (*threadSleepUntil)(UINT64);
@@ -729,6 +740,7 @@ extern unlockMutex globalUnlockMutex;
 extern tryLockMutex globalTryLockMutex;
 extern freeMutex globalFreeMutex;
 extern createThread globalCreateThread;
+extern createThreadEx globalCreateThreadEx;
 extern joinThread globalJoinThread;
 extern threadSleep globalThreadSleep;
 extern threadSleepUntil globalThreadSleepUntil;
@@ -991,6 +1003,7 @@ extern PUBLIC_API atomicXor globalAtomicXor;
 // Thread functionality
 //
 #define THREAD_CREATE                globalCreateThread
+#define THREAD_CREATE_EX             globalCreateThreadEx
 #define THREAD_JOIN                  globalJoinThread
 #define THREAD_SLEEP                 globalThreadSleep
 #define THREAD_SLEEP_UNTIL           globalThreadSleepUntil

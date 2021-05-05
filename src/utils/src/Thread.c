@@ -162,7 +162,7 @@ PUBLIC_API TID defaultGetThreadId()
     return (TID) pthread_self();
 }
 
-PUBLIC_API STATUS defaultCreateThread(PTID pThreadId, startRoutine start, PVOID args)
+PUBLIC_API STATUS defaultCreateThreadEx(PTID pThreadId, PCHAR threadName, UINT32 threadSize, startRoutine start, PVOID args)
 {
     STATUS retStatus = STATUS_SUCCESS;
     pthread_t threadId;
@@ -181,36 +181,51 @@ PUBLIC_API STATUS defaultCreateThread(PTID pThreadId, startRoutine start, PVOID 
     result = pthread_attr_setstacksize(&attr, THREAD_STACK_SIZE_ON_CONSTRAINED_DEVICE);
     CHK_ERR(result == 0, STATUS_THREAD_ATTR_SET_STACK_SIZE_FAILED, "pthread_attr_setstacksize failed with %d", result);
 #endif
-#if 1
-    {
-        #include "esp_heap_caps.h"
-        #include "esp_system.h"
-        extern uint32_t esp_get_free_heap_size( void );
-        extern size_t heap_caps_get_free_size( uint32_t caps );
-        uint32_t totalSize = esp_get_free_heap_size();
-        uint32_t spiSize = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-        uint32_t internalSize = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-        uint32_t defaultSize = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
-        DLOGD("totalSize:%d, spiSize:%d, internalSize:%d, defaultSize:%d before pthread", totalSize, spiSize, internalSize, defaultSize);
+
+#if defined(KVS_PLAT_ESP_FREERTOS)
+    UINT32 totalSize = esp_get_free_heap_size();
+    UINT32 spiSize = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    UINT32 internalSize = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+
+    esp_pthread_cfg_t pthread_cfg;
+    esp_err_t esp_err = esp_pthread_get_cfg(&pthread_cfg);
+    if(esp_err != ESP_OK){
+        DLOGW("get the esp pthread cfg failed.");
+    }
+
+    if(threadSize == 0){
+        pthread_cfg.stack_size = DEFAULT_THREAD_SIZE;
+    }else{
+        pthread_cfg.stack_size = threadSize;
+    }
+
+    if(threadName == NULL){
+        pthread_cfg.thread_name = DEFAULT_THREAD_NAME;
+    }else{
+        pthread_cfg.thread_name = threadName;
+    }
+
+    esp_err = esp_pthread_set_cfg(&pthread_cfg);
+
+    if(esp_err != ESP_OK){
+        DLOGW("set the esp pthread cfg failed.");
     }
 #endif
-    //usleep(2000);
-    pthread_attr_setdetachstate(pAttr, PTHREAD_CREATE_DETACHED);
-    //pthread_attr_setstacksize(pAttr, 15360);
-    result = pthread_create(&threadId, pAttr, start, args);
-#if 1
-    {
 
-        #include "esp_heap_caps.h"
-        #include "esp_system.h"
-        extern uint32_t esp_get_free_heap_size( void );
-        extern size_t heap_caps_get_free_size( uint32_t caps );
-        uint32_t totalSize = esp_get_free_heap_size();
-        uint32_t spiSize = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-        uint32_t internalSize = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-        uint32_t defaultSize = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
-        DLOGD("totalSize:%d, spiSize:%d, internalSize:%d, defaultSize:%d after pthread", totalSize, spiSize, internalSize, defaultSize);
+    pthread_attr_setdetachstate(pAttr, PTHREAD_CREATE_DETACHED);
+
+    if(threadSize == 0){
+        pthread_attr_setstacksize(pAttr, DEFAULT_THREAD_SIZE);
+    }else{
+        pthread_attr_setstacksize(pAttr, threadSize);
     }
+    result = pthread_create(&threadId, pAttr, start, args);
+
+#if defined(KVS_PLAT_ESP_FREERTOS)
+    UINT32 curTotalSize = esp_get_free_heap_size();
+    UINT32 curSpiSize = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    UINT32 curInternalSize = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    DLOGD("pthread:%s, size:%d requires ram, totalSize:%d, spiSize:%d, internalSize:%d", threadName, threadSize, totalSize-curTotalSize, spiSize-curSpiSize, internalSize-curInternalSize);
 #endif
     switch (result) {
     case 0:
@@ -240,6 +255,12 @@ CleanUp:
     }
 
     return retStatus;
+}
+
+
+PUBLIC_API STATUS defaultCreateThread(PTID pThreadId, startRoutine start, PVOID args)
+{
+    return defaultCreateThreadEx(pThreadId, NULL, 0, start, args);
 }
 
 PUBLIC_API STATUS defaultJoinThread(TID threadId, PVOID* retVal)
@@ -378,6 +399,7 @@ PUBLIC_API VOID defaultThreadSleepUntil(UINT64 time)
 getTId globalGetThreadId = defaultGetThreadId;
 getTName globalGetThreadName = defaultGetThreadName;
 createThread globalCreateThread = defaultCreateThread;
+createThreadEx globalCreateThreadEx = defaultCreateThreadEx;
 threadSleep globalThreadSleep = defaultThreadSleep;
 threadSleepUntil globalThreadSleepUntil = defaultThreadSleepUntil;
 joinThread globalJoinThread = defaultJoinThread;

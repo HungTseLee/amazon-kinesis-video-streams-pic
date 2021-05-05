@@ -159,6 +159,7 @@ typedef struct {
 
 // Internal Functions
 STATUS timerQueueCreateInternal(UINT32, PTimerQueue*);
+STATUS timerQueueCreateInternalEx(UINT32, PTimerQueue*, PCHAR, UINT32);
 STATUS timerQueueFreeInternal(PTimerQueue*);
 STATUS timerQueueEvaluateNextInvocation(PTimerQueue);
 
