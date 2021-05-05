@@ -210,7 +210,6 @@ PUBLIC_API STATUS defaultCreateThreadEx(PTID pThreadId, PCHAR threadName, UINT32
     if(esp_err != ESP_OK){
         DLOGW("set the esp pthread cfg failed.");
     }
-#endif
 
     pthread_attr_setdetachstate(pAttr, PTHREAD_CREATE_DETACHED);
 
@@ -219,6 +218,8 @@ PUBLIC_API STATUS defaultCreateThreadEx(PTID pThreadId, PCHAR threadName, UINT32
     }else{
         pthread_attr_setstacksize(pAttr, threadSize);
     }
+#endif
+
     result = pthread_create(&threadId, pAttr, start, args);
 
 #if defined(KVS_PLAT_ESP_FREERTOS)
