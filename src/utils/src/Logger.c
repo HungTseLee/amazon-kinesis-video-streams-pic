@@ -49,7 +49,7 @@ VOID addLogMetadata(PCHAR buffer, UINT32 bufferLen, PCHAR fmt, UINT32 logLevel)
     offset += SNPRINTF(buffer + offset, bufferLen - offset, "%s ", tidString);
 #endif
 #endif
-    SNPRINTF(buffer + offset, bufferLen - offset, "%s\n", fmt);
+    SNPRINTF(buffer + offset, bufferLen - offset, "%s\n\r", fmt);
 }
 
 //

@@ -220,6 +220,11 @@ PUBLIC_API STATUS defaultCreateThreadEx(PTID pThreadId, PCHAR threadName, UINT32
     }
 #endif
 
+    if(threadSize == 0){
+        pthread_attr_setstacksize(pAttr, DEFAULT_THREAD_SIZE);
+    }else{
+        pthread_attr_setstacksize(pAttr, threadSize);
+    }
     result = pthread_create(&threadId, pAttr, start, args);
 
 #if defined(KVS_PLAT_ESP_FREERTOS)

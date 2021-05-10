@@ -15,6 +15,8 @@ extern "C" {
 #    endif /* __ATOMIC_RELAXED */
 #elif defined(_MSC_VER)
 #    include "AtomicsMsvc.h"
+#elif defined(__ICCARM__)
+#    include "AtomicsIAR.h"
 #else
 #    error No atomics implementation for your compiler is available
 #endif

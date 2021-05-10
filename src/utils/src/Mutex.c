@@ -172,7 +172,13 @@ CleanUp:
 
 // Definition of the static global mutexes
 pthread_mutex_t globalKvsReentrantMutex = GLOBAL_MUTEX_INIT_RECURSIVE;
-pthread_mutex_t globalKvsNonReentrantMutex = GLOBAL_MUTEX_INIT;
+//pthread_mutex_t globalKvsNonReentrantMutex = GLOBAL_MUTEX_INIT;  //Test for AmebaPro
+pthread_mutex_t globalKvsNonReentrantMutex = {   //Test for AmebaPro
+            .xIsInitialized = ( BaseType_t )0,
+            .xMutex = { { 0 } },
+            .xTaskOwner = NULL,
+            .xAttr = { .iType = 0 }
+        };
 
 MUTEX defaultCreateMutex(BOOL reentrant)
 {
@@ -223,7 +229,13 @@ VOID defaultFreeMutex(MUTEX mutex)
     }
 }
 
-pthread_cond_t globalKvsConditionVariable = PTHREAD_COND_INITIALIZER;
+//pthread_cond_t globalKvsConditionVariable = PTHREAD_COND_INITIALIZER;  //Test for AmebaPro
+pthread_cond_t globalKvsConditionVariable = {    //Test for AmebaPro
+            .xIsInitialized = pdFALSE,      
+            .xCondMutex = { { 0 } },        
+            .xCondWaitSemaphore = { { 0 } },
+            .iWaitingThreads = 0            
+        };
 
 CVAR defaultConditionVariableCreate()
 {

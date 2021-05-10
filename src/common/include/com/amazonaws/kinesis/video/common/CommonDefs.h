@@ -12,6 +12,13 @@ extern "C" {
 #endif
 
 ////////////////////////////////////////////////////
+// Config for AmebaPro
+////////////////////////////////////////////////////
+#include "basic_types.h"
+#include "integer.h"
+
+
+////////////////////////////////////////////////////
 // Project defines
 ////////////////////////////////////////////////////
 #if defined _WIN32 || defined __CYGWIN__
@@ -45,6 +52,7 @@ extern "C" {
         #define PACKED              __attribute__((__packed__))
         #define DISCARDABLE
     #else
+        #define INLINE              inline
         #define LIB_EXPORT
         #define LIB_IMPORT
         #define LIB_INTERNAL
@@ -138,7 +146,7 @@ extern "C" {
 #else
 
 typedef char                    CHAR;
-typedef short                   WCHAR;
+//typedef short                   WCHAR;  //Test for AmebaPro
 typedef unsigned char           UINT8;
 typedef char                    INT8;
 typedef unsigned short          UINT16;
@@ -174,7 +182,7 @@ typedef float                   FLOAT;
         #endif
     #endif
 #else
-    typedef INT32                BOOL;
+//    typedef INT32                BOOL;  //Test for AmebaPro
 #endif
 
 typedef UINT8                BYTE;
@@ -192,7 +200,8 @@ typedef UINT32*              PUINT32;
 typedef INT64*               PINT64;
 typedef UINT64*              PUINT64;
 typedef long                 LONG, *PLONG;
-typedef unsigned long        ULONG, *PULONG;
+// typedef unsigned long        ULONG, *PULONG;  //Test for AmebaPro
+typedef ULONG*               PULONG; 
 typedef DOUBLE*              PDOUBLE;
 typedef LDOUBLE*             PLDOUBLE;
 typedef FLOAT*               PFLOAT;
@@ -232,13 +241,9 @@ typedef UINT64              MUTEX;
 #if defined __WINDOWS_BUILD__
 typedef PCONDITION_VARIABLE CVAR;
 #else
-#include <pthread.h>
+#include <FreeRTOS_POSIX.h>  // this sould be included before including <pthread.h>. It contains the configuration of the Realtek platform. //Test for AmebaPro
+#include <FreeRTOS_POSIX/pthread.h>
 #include <signal.h>
-#if defined(KVS_PLAT_ESP_FREERTOS)
-#include <esp_pthread.h>
-#include "esp_heap_caps.h"
-#include "esp_system.h"
-#endif
 typedef pthread_cond_t* CVAR;
 #endif
 
@@ -260,10 +265,9 @@ typedef pthread_cond_t* CVAR;
 #define MAX_MUTEX_NAME 32
 #endif
 
-#if defined(KVS_PLAT_ESP_FREERTOS)
-#define DEFAULT_THREAD_SIZE 4096
+// Default thread size and name for AmebaPro
+#define DEFAULT_THREAD_SIZE 20*1024
 #define DEFAULT_THREAD_NAME "pthread"
-#endif
 
 // Content ID - 64 bit uint
 typedef UINT64              CID;
@@ -272,6 +276,7 @@ typedef CID*                PCID;
 //
 // int and long ptr definitions
 //
+#define SIZE_32
 #if defined SIZE_64
     typedef INT64                INT_PTR, *PINT_PTR;
     typedef UINT64               UINT_PTR, *PUINT_PTR;
@@ -336,8 +341,10 @@ typedef CID*                PCID;
         typedef ULONG_PTR SIZE_T, *PSIZE_T;
         typedef LONG_PTR SSIZE_T, *PSSIZE_T;
     #elif !(defined _WIN32 || defined _WIN64)
-        typedef UINT_PTR SIZE_T, *PSIZE_T;
-        typedef INT_PTR SSIZE_T, *PSSIZE_T;
+//        typedef UINT_PTR SIZE_T, *PSIZE_T;  //Test for AmebaPro
+        typedef SIZE_T*   PSIZE_T;
+//        typedef INT_PTR SSIZE_T, *PSSIZE_T;  //Test for AmebaPro
+        typedef SSIZE_T*  PSSIZE_T;
     #endif
     #define _SIZE_T_DEFINED_IN_COMMON
 #endif
@@ -491,18 +498,18 @@ typedef CID*                PCID;
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include <sys/stat.h>  //Test for AmebaPro
+#include <FreeRTOS_POSIX/errno.h>
 #include <ctype.h>
 #include <time.h>
 
 #if !(defined _WIN32 || defined _WIN64)
-#include <unistd.h>
-#include <dirent.h>
-#include <sys/time.h>
+#include <FreeRTOS_POSIX/unistd.h>  ///sys
+//#include <dirent.h>  //Test for AmebaPro
+#include <time.h>
 
 #define KVSPIC_OS_VERSION "freertos/freertos"
-#define KVSPIC_PLATFORM_NAME "esp32"
+#define KVSPIC_PLATFORM_NAME "AmebaPro"  //Test for AmebaPro
 #ifdef KVSPIC_HAVE_UTSNAME_H
 #include <sys/utsname.h>
 #endif
@@ -510,7 +517,7 @@ typedef CID*                PCID;
 
 #if !defined(_MSC_VER) && !defined(__MINGW64__) && !defined(__MINGW32__) && !defined (__MACH__)
 // NOTE!!! For some reason memalign is not included for Linux builds in stdlib.h
-#include <malloc.h>
+//#include <malloc.h>  //Test for AmebaPro
 #endif
 
 #if defined _WIN32 || defined _WIN64 || defined __CYGWIN__
@@ -565,7 +572,7 @@ typedef CID*                PCID;
 
 #if !defined (__MACH__)
 #ifdef KVSPIC_HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
+#include <FreeRTOS_POSIX/sys/prctl.h>  //Test for AmebaPro
 #endif
 #endif
 
@@ -851,7 +858,8 @@ extern PUBLIC_API atomicXor globalAtomicXor;
 //
 // Environment variables
 //
-#define GETENV                     getenv
+//#define GETENV                     getenv  //Test for AmebaPro
+#define GETENV(a)                     NULL
 
 //
 // Empty string definition

@@ -1,4 +1,5 @@
 #include "Include_i.h"
+#include "fatfs_wrap.h" //Test for AmebaPro
 
 /**
  * Read a file from the given full/relative filePath into the memory area pointed to by pBuffer.

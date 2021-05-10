@@ -1,4 +1,5 @@
 #include "Include_i.h"
+#include "fatfs_wrap.h" //Test for AmebaPro
 
 /**
  * Removes the directory - empty or not.
